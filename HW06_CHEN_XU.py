@@ -93,9 +93,19 @@ def answerReportQuestion(data):
     #         veggieMaxIndex = i
     # print(veggieMax, headerForCrossCorrelationMatrix[veggieMaxIndex])
     #2e
-    milkIndex = headerForCrossCorrelationMatrix.index("Milk")
-    cerealIndex = headerForCrossCorrelationMatrix.index("Cerel")
-    print(data[milkIndex][cerealIndex])
+    # milkIndex = headerForCrossCorrelationMatrix.index("Milk")
+    # cerealIndex = headerForCrossCorrelationMatrix.index("Cerel")
+    # print(data[milkIndex][cerealIndex])
+    #2f
+    # notStrongName1 = headerForCrossCorrelationMatrix[15]
+    # notStrongName2 = headerForCrossCorrelationMatrix[17]
+    # print(data[15])
+    # print(data[17])
+    # print(notStrongName1, notStrongName2)
+    #2g
+    # fishIndex = headerForCrossCorrelationMatrix.index("Fish")
+    # print(data[fishIndex])
+
 # Get the center of a Cluster given a cluster
 # Find the average of all the points in the cluster
 def getMiddleOfCluster(cluster):
@@ -111,10 +121,25 @@ def getMiddleOfCluster(cluster):
 # Get the distance between clusters by comparing the centers of the two clusters
 # Use the Euclidean Distance between the center of the clusters
 def getDistanceBetweenClusters(center1, center2):
+    total_distance = 0
     for index in range(len(center1)):
-        distance = math.sqrt((center1[index] - center2[index])**2)
-    return distance
+        total_distance += ((center1[index] - center2[index])**2)
+    return math.sqrt(total_distance)
 
+
+def getCenterOfCluster(clusterVal):
+    print(clusterVal)
+    medianArray = []
+    attributeNum = len(clusterVal[0])
+    for attributeID in range(1,attributeNum):
+        attributeValArray = []
+        #Create a new array from each entry with this attribute
+        for entry in clusterVal:
+            attributeValArray.append(entry[attributeID])
+        #Find the median of this array and append it to the median array
+        medianOfAttribute = np.median(attributeValArray)
+        medianArray.append(medianOfAttribute)
+    return medianArray
 
 def agglomerate(data):
     # clusters will be a dictionary of {clusterID:[nodes]}
@@ -124,13 +149,14 @@ def agglomerate(data):
     # initialize data into clusters
     clusterID = 1
     for dataPoint in data:
-        clusters[clusterID] = dataPoint
-        clusterCenters[clusterID] = dataPoint[0]
+        clusters[clusterID] = [dataPoint]
+        clusterCenters[clusterID] = dataPoint[1:]
         clusterID += 1
     
     # keep clustering while there is more than 1 cluster
     while len(clusters) > 1:
-        closestClusters = [0, 0]
+        print(len(clusters))
+        closestClusters = [-1, -1]
         closestDistance = float('inf')
         for id1 in clusters:
             for id2 in clusters:
@@ -138,11 +164,33 @@ def agglomerate(data):
                     continue
                 center1 = clusterCenters[id1]
                 center2 = clusterCenters[id2]
+                # print(center1)
+                # print(center2)
                 dist = getDistanceBetweenClusters(center1, center2)
                 if dist < closestDistance:
                     closestDistance = dist
                     closestClusters = [id1, id2]
-
+        # print(closestClusters)
+        # print(clusters[closestClusters[0]])
+        if (closestClusters[0] != -1 and closestClusters[1] != -1):
+            #We have 2 closest cluster
+            #Sort the id
+            closestClusters.sort()
+            id1 = closestClusters[0]
+            id2 = closestClusters[1]
+            cluster1 = clusters[id1]
+            cluster2 = clusters[id2]
+            #Merge the 2 clusters
+            cluster1.extend(cluster2)
+            mergedCluster = cluster1
+            #Update cluster1 in the dictionary
+            clusters[id1] = mergedCluster
+            clusters.pop(id2)
+            clusterCenters.pop(id2)
+            medianArray = getCenterOfCluster(mergedCluster)
+            # print(medianArray)
+            clusterCenters[id1] = medianArray
+    print(clusters)
 
 # write the correlation coefficient matrix to a file
 def writeToFile(matrix, filename):
@@ -158,7 +206,9 @@ def writeToFile(matrix, filename):
 def main():
     shopperArray, groceryArray = gatherData('HW_CLUSTERING_SHOPPING_CART_v2211.csv')
     cross_correlation_matrix = cross_correlation(groceryArray)
-    answerReportQuestion(cross_correlation_matrix)
+    agglomerate(shopperArray)
+    # agglomerate(cross_correlation_matrix)
+    # answerReportQuestion(cross_correlation_matrix)
     # writeToFile(cross_correlation_matrix, 'correlation_matrix.csv')
     
 
