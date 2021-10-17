@@ -5,6 +5,8 @@
 
 # imports
 import numpy as np
+from scipy.cluster.hierarchy import dendrogram, linkage
+from matplotlib import pyplot as plt
 import math
 
 header = ['ID', 'Milk', 'ChdBby', 'Vegges', 'Cerel', 'Bread', 'Rice', 'Meat', 'Eggs', 'YogChs', 'Chips', 'Soda', 'Fruit', 'Corn', 'Fish', 'Sauce', 'Beans', 'Tortya', 'Salt', 'Scented', 'Salza']
@@ -34,7 +36,7 @@ def gatherData(filename):
             data[attribute] = attributeVal
             groceryArray[attribute].append(attributeVal)
         
-        dataArray.append(data)
+        dataArray.append(data[1:])
         line = file.readline()
     return dataArray, groceryArray
 
@@ -206,6 +208,12 @@ def writeToFile(matrix, filename):
         file.write(string + '\n')
     return
 
+def plotDendrogram(data):
+    Z = linkage(data, 'single', 'euclidean')
+    dn = dendrogram(Z)
+    plt.show()
+
+
 # main function
 def main():
     shopperArray, groceryArray = gatherData('HW_CLUSTERING_SHOPPING_CART_v2211.csv')
@@ -214,6 +222,10 @@ def main():
     # agglomerate(cross_correlation_matrix)
     # answerReportQuestion(cross_correlation_matrix)
     # writeToFile(cross_correlation_matrix, 'correlation_matrix.csv')
+    centers = []
+    for clusterCenter in clusterCenters:
+        centers.append(clusterCenters[clusterCenter])
+    plotDendrogram(centers)
     
 
 if __name__ == '__main__':
