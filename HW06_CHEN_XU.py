@@ -26,6 +26,7 @@ def gatherData(filename):
     file.readline()
     
     dataArray = []
+    dataWithoutIDArray = []
     groceryArray = [[] for headerNum in range(len(header))]
     print(len(groceryArray))
     line = file.readline()
@@ -36,9 +37,10 @@ def gatherData(filename):
             data[attribute] = attributeVal
             groceryArray[attribute].append(attributeVal)
         
-        dataArray.append(data[1:])
+        dataArray.append(data)
+        dataWithoutIDArray.append(data[1:])
         line = file.readline()
-    return dataArray, groceryArray
+    return dataArray, groceryArray, dataWithoutIDArray
 
 # use the numpy package to create a cross-correlation matrix
 # round the correlation coefficients to two decimal places
@@ -185,6 +187,12 @@ def agglomerate(data):
             id2 = closestClusters[1]
             cluster1 = clusters[id1]
             cluster2 = clusters[id2]
+            if (len(cluster1) < len(cluster2)):
+                averageStereotype(cluster1)
+                formatClusterDataForCoefficient(cluster1)
+            else:
+                averageStereotype(cluster2)
+                formatClusterDataForCoefficient(cluster2)
             #Merge the 2 clusters
             cluster1.extend(cluster2)
             mergedCluster = cluster1
@@ -302,11 +310,11 @@ def plotDendrogram(data):
 
 # main function
 def main():
-    shopperArray, groceryArray = gatherData('HW_CLUSTERING_SHOPPING_CART_v2211.csv')
+    shopperArray, groceryArray, dataWithoutIDArray = gatherData('HW_CLUSTERING_SHOPPING_CART_v2211.csv')
     # print(groceryArray)
     cross_correlation_matrix = cross_correlation(groceryArray[1:])
-    agglomerateLastTwenty()
-    # agglomerate(shopperArray)
+    # agglomerateLastTwenty()
+    agglomerate(shopperArray)
     # agglomerate(cross_correlation_matrix)
     # answerReportQuestion(cross_correlation_matrix)
     # writeToFile(cross_correlation_matrix, 'correlation_matrix.csv')
