@@ -188,6 +188,7 @@ def agglomerate(data):
             cluster1 = clusters[id1]
             cluster2 = clusters[id2]
             if (len(cluster1) < len(cluster2)):
+                # print(len(cluster1))
                 averageStereotype(cluster1)
                 formatClusterDataForCoefficient(cluster1)
             else:
@@ -275,9 +276,11 @@ def agglomerateLastTwenty():
             cluster1 = clusters[id1]
             cluster2 = clusters[id2]
             if (len(cluster1) < len(cluster2)):
+                print(len(cluster1))
                 averageStereotype(cluster1)
                 formatClusterDataForCoefficient(cluster1)
             else:
+                print(len(cluster2))
                 averageStereotype(cluster2)
                 formatClusterDataForCoefficient(cluster2)
             # print(cluster2)
@@ -313,8 +316,8 @@ def main():
     shopperArray, groceryArray, dataWithoutIDArray = gatherData('HW_CLUSTERING_SHOPPING_CART_v2211.csv')
     # print(groceryArray)
     cross_correlation_matrix = cross_correlation(groceryArray[1:])
-    # agglomerateLastTwenty()
-    agglomerate(shopperArray)
+    agglomerateLastTwenty()
+    # agglomerate(shopperArray)
     # agglomerate(cross_correlation_matrix)
     # answerReportQuestion(cross_correlation_matrix)
     # writeToFile(cross_correlation_matrix, 'correlation_matrix.csv')
