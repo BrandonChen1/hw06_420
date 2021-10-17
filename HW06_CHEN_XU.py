@@ -5,6 +5,7 @@
 
 # imports
 import numpy as np
+import math
 
 header = ['ID', 'Milk', 'ChdBby', 'Vegges', 'Cerel', 'Bread', 'Rice', 'Meat', 'Eggs', 'YogChs', 'Chips', 'Soda', 'Fruit', 'Corn', 'Fish', 'Sauce', 'Beans', 'Tortya', 'Salt', 'Scented', 'Salza']
 
@@ -43,6 +44,55 @@ def cross_correlation(data):
             correlation_coefficient_matrix[row][col] = round(correlation_coefficient_matrix[row][col], 2)
             # print(correlation_coefficient_matrix[row][col])
     return correlation_coefficient_matrix
+
+# Get the center of a Cluster given a cluster
+# Find the average of all the points in the cluster
+def getMiddleOfCluster(cluster):
+    numPoints = len(cluster)
+    middlePoint = [0]*len(cluster[0])
+    for point in cluster:
+        for attribute in range(len(point)):
+            middlePoint[attribute] += point[attribute]
+    for attributeMean in range(len(middlePoint)):
+        middlePoint[attributeMean] = middlePoint[attributeMean]/numPoints
+    return middlePoint
+
+# Get the distance between clusters by comparing the centers of the two clusters
+# Use the Euclidean Distance between the center of the clusters
+def getDistanceBetweenClusters(center1, center2):
+    for index in range(len(center1)):
+        distance = math.sqrt((center1[index] - center2[index])**2)
+    return distance
+
+
+def agglomerate(data):
+    # clusters will be a dictionary of {clusterID:[nodes]}
+    clusters = {}
+    # clusterCenters will be a dictionary of {clusterID:[id]}
+    clusterCenters = {}
+    # initialize data into clusters
+    clusterID = 1
+    for dataPoint in data:
+        clusters[clusterID] = dataPoint
+        clusterCenters[clusterID] = dataPoint[0]
+        clusterID += 1
+    
+    # keep clustering while there is more than 1 cluster
+    while len(clusters) > 1:
+        closestClusters = [0, 0]
+        closestDistance = float('inf')
+        for id1 in clusters:
+            for id2 in clusters:
+                if id1 == id2:
+                    continue
+                center1 = clusterCenters[id1]
+                center2 = clusterCenters[id2]
+                dist = getDistanceBetweenClusters(center1, center2)
+                if dist < closestDistance:
+                    closestDistance = dist
+                    closestClusters = [id1, id2]
+
+
 
 # write the correlation coefficient matrix to a file
 def writeToFile(matrix, filename):
