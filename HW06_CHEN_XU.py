@@ -42,7 +42,7 @@ def gatherData(filename):
 # round the correlation coefficients to two decimal places
 def cross_correlation(data):
     # print(data)
-    correlation_coefficient_matrix = np.corrcoef(data[1:])
+    correlation_coefficient_matrix = np.corrcoef(data)
     # print(correlation_coefficient_matrix)
     for row in range(len(correlation_coefficient_matrix)):
         for col in range(len(correlation_coefficient_matrix[0])):
@@ -131,7 +131,7 @@ def getDistanceBetweenClusters(center1, center2):
 
 
 def getCenterOfCluster(clusterVal):
-    print(clusterVal)
+    # print(clusterVal)
     medianArray = []
     attributeNum = len(clusterVal[0])
     for attributeID in range(1,attributeNum):
@@ -196,6 +196,92 @@ def agglomerate(data):
     print("clusters: " + str(clusters))
     print("clusterCenters: " + str(clusterCenters))
 
+def findHighestCorrelatedAttribute(coefficientMatrix):
+    currentI,currentJ = -1, -1
+    curr_abs_max = -2
+    curr_actual_max = 0
+    for i in range(len(coefficientMatrix)):
+        for j in range(len(coefficientMatrix[i])):
+            curr_val = abs(coefficientMatrix[i][j])
+            if (curr_val > curr_abs_max and curr_val != 1):
+                currentI = i
+                currentJ = j
+                curr_abs_max = curr_val
+                curr_actual_max = coefficientMatrix[i][j]
+
+    if (curr_abs_max != -2):
+        attributeA = headerForCrossCorrelationMatrix[currentI]
+        attributeB = headerForCrossCorrelationMatrix[currentJ]
+        # print(attributeA, attributeB)
+        print("The two attribute that are strongly correlated are {} and {}, their coefficient is {}".format(attributeA, attributeB, curr_actual_max))
+
+
+def formatClusterDataForCoefficient(cluster):
+    crossCorrelationData = [[] for _ in range(20)]
+    if (len(cluster) > 2):
+        for record in cluster:
+            for i in range(1,len(record)):
+                crossCorrelationData[i-1].append(record[i])
+        #Feed this data into the cross correlation matrix calculation function
+        crossCorrelationCoefficient = cross_correlation(crossCorrelationData)
+        # print(crossCorrelationCoefficient)
+        findHighestCorrelatedAttribute(crossCorrelationCoefficient)
+
+def averageStereotype(cluster):
+    # print(cluster)
+    sumArray = [0] * 20
+    totalCounter = len(cluster)
+    for record in cluster:
+        for i in range(1,len(record)):
+            sumArray[i-1] += record[i]
+    averageArray = [x / totalCounter for x in sumArray]
+    print("The average prototype is ")
+    print(averageArray)
+    # print(totalCounter)
+
+def agglomerateLastTwenty():
+    global clusters
+    global clusterCenters
+    while len(clusters) > 1:
+        # print(len(clusters))
+        closestClusters = [-1, -1]
+        closestDistance = float('inf')
+        for id1 in clusters:
+            for id2 in clusters:
+                if id1 == id2:
+                    continue
+                center1 = clusterCenters[id1]
+                center2 = clusterCenters[id2]
+                dist = getDistanceBetweenClusters(center1, center2)
+                if dist < closestDistance:
+                    closestDistance = dist
+                    closestClusters = [id1, id2]
+        if (closestClusters[0] != -1 and closestClusters[1] != -1):
+            #We have 2 closest cluster
+            #Sort the id
+            closestClusters.sort()
+            id1 = closestClusters[0]
+            id2 = closestClusters[1]
+            cluster1 = clusters[id1]
+            cluster2 = clusters[id2]
+            if (len(cluster1) < len(cluster2)):
+                averageStereotype(cluster1)
+                formatClusterDataForCoefficient(cluster1)
+            else:
+                averageStereotype(cluster2)
+                formatClusterDataForCoefficient(cluster2)
+            # print(cluster2)
+            #Merge the 2 clusters
+            cluster1.extend(cluster2)
+            mergedCluster = cluster1
+            #Update cluster1 in the dictionary
+            clusters[id1] = mergedCluster
+            clusters.pop(id2)
+            clusterCenters.pop(id2)
+            medianArray = getCenterOfCluster(mergedCluster)
+            # print(medianArray)
+            clusterCenters[id1] = medianArray
+
 # write the correlation coefficient matrix to a file
 def writeToFile(matrix, filename):
     file = open(filename, 'w')
@@ -209,7 +295,9 @@ def writeToFile(matrix, filename):
 # main function
 def main():
     shopperArray, groceryArray = gatherData('HW_CLUSTERING_SHOPPING_CART_v2211.csv')
-    cross_correlation_matrix = cross_correlation(groceryArray)
+    # print(groceryArray)
+    cross_correlation_matrix = cross_correlation(groceryArray[1:])
+    agglomerateLastTwenty()
     # agglomerate(shopperArray)
     # agglomerate(cross_correlation_matrix)
     # answerReportQuestion(cross_correlation_matrix)
